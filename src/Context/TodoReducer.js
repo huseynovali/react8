@@ -1,46 +1,141 @@
-import { createSlice } from "@reduxjs/toolkit";
-
+import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
+import axios from "axios";
 
 const initialState = {
     todos: [],
     activeTodos: [],
-    complateTodos: [],
-    tab: null
-}
+    completedTodos: [],
+    tab: null,
+    loading: false,
+    error: null,
+};
 
-const TodoReducer = createSlice({
-    name: "Todo",
+export const fetchTodos = createAsyncThunk(
+    "todos/fetchTodos",
+    async () => {
+        try {
+            const response = await axios.get('http://localhost:5000/api/todos');
+            const todos = response.data;
+            return todos;
+        } catch (error) {
+            console.error(error);
+            throw error;
+        }
+    }
+);
+export const addTodo = createAsyncThunk(
+    "todos/addTodo",
+    async (todo) => {
+        try {
+            const response = await axios.post('http://localhost:5000/api/todos', todo);
+            const newTodo = response.data;
+            return newTodo;
+        } catch (error) {
+            console.error(error);
+            throw error;
+        }
+    }
+);
+export const removeTodo = createAsyncThunk(
+    "todos/removeTodo",
+    async (id) => {
+        try {
+            const response = await axios.delete(`http://localhost:5000/api/deletetodo/${id}`);
+            const deletedTodo = response.data;
+            console.log(deletedTodo);
+            return deletedTodo;
+        } catch (error) {
+            console.error(error);
+            throw error;
+        }
+    }
+);
+export const completeTodo = createAsyncThunk(
+    "todos/complatedTodo",
+    async (param) => {
+
+
+        try {
+            const response = await axios.put(`http://localhost:5000/api/todo/${param.id}/check`, {
+                complated: param.completed
+            });
+            const complatedTodo = response.data;
+            return complatedTodo;
+        } catch (error) {
+            console.error(error);
+            throw error;
+        }
+    }
+);
+export const clearCompletedTodos = createAsyncThunk(
+    "todos/removeCompletedTodo",
+    async () => {
+        try {
+            const response = await axios.delete(
+                "http://localhost:5000/api/deletecomplatedtodo"
+            );
+            const deletedTodo = response.data;
+            console.log(deletedTodo);
+            return deletedTodo;
+        } catch (error) {
+            console.error(error);
+            throw error;
+        }
+    }
+);
+
+
+const todoSlice = createSlice({
+    name: "todos",
     initialState,
     reducers: {
-        addTodo: (state, action) => {
-            state.todos = [...state.todos, action.payload]
-        },
-        removeTodo: (state, action) => {
-            const filteredTodo = state.todos.filter(item => item.id !== action.payload)
-            state.todos = filteredTodo
-        },
-        complatedTodo: (state, action) => {
-            let checkedTodo = state.todos.find(item => item.id == action.payload)
-            checkedTodo.complated = !checkedTodo.complated;
-        },
+
         selectTodo: (state) => {
-            const nonComplatedTodo = state.todos.filter((item) => item.complated == false);
-            const ComplatedTodo = state.todos.filter((item) => item.complated == true);
-            state.complateTodos = ComplatedTodo;
-            state.activeTodos = nonComplatedTodo;
+            state.activeTodos = state.todos?.filter((todo) => !todo.complated);
+            state.completedTodos = state.todos?.filter((todo) => todo.complated);
+            console.log(state.completedTodos);
         },
         selectTab: (state, action) => {
             state.tab = action.payload;
-            console.log(action.payload);
         },
-        clearComplatedRemove: (state) => {
-            const complatedTodoremove = state.todos.filter((item) => item.complated == false);
-            state.todos = complatedTodoremove
-            state.complateTodos = []
-        }
-    }
-})
 
+    },
+    extraReducers: (builder) => {
+        builder
+            .addCase(fetchTodos.pending, (state) => {
+                state.loading = true;
+                state.error = null;
+            })
+            .addCase(fetchTodos.fulfilled, (state, action) => {
+                state.loading = false;
+                state.error = null;
+                state.todos = action.payload;
+            })
+            .addCase(fetchTodos.rejected, (state, action) => {
+                state.loading = false;
+                state.error = action.error.message;
+            })
+            .addCase(addTodo.pending, (state) => {
+                state.loading = true;
+                state.error = null;
+            })
+            .addCase(addTodo.fulfilled, (state, action) => {
+                state.loading = false;
+                state.error = null;
+                state.todos.push(action.payload);
+            })
+            .addCase(addTodo.rejected, (state, action) => {
+                state.loading = false;
+                state.error = action.error.message;
+            });
+    },
+});
 
-export default TodoReducer.reducer;
-export const { addTodo, removeTodo, complatedTodo, selectTodo, selectTab, clearComplatedRemove } = TodoReducer.actions
+export const {
+
+    selectTodo,
+    selectTab,
+
+} = todoSlice.actions;
+
+export default todoSlice.reducer;

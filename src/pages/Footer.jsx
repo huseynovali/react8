@@ -1,12 +1,15 @@
 import React, { useContext } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
-import { clearComplatedRemove, selectTab } from '../Context/TodoReducer'
-
+import { fetchTodos, selectTab } from '../Context/TodoReducer'
+import { clearCompletedTodos } from '../Context/TodoReducer'
 function Footer() {
     const dispatch = useDispatch()
-    const { activeTodos,tab } = useSelector(state => state.TodoReducer)
+    const { activeTodos, tab, completedTodos } = useSelector(state => state.TodoReducer)
     const removeComplatedTodo = () => {
-        dispatch(clearComplatedRemove())
+        dispatch(clearCompletedTodos())
+            .then(() => {
+                dispatch(fetchTodos())
+            })
     }
     return (
 
@@ -20,21 +23,24 @@ function Footer() {
 
 
             <ul className="filters">
-                <li className={tab == 'todos' ? "selected":""}>
-                    <button  onClick={() => dispatch(selectTab("todos"))}>All</button>
+                <li className={tab == 'todos' ? "selected" : ""}>
+                    <button onClick={() => dispatch(selectTab("todos"))}>All</button>
                 </li>
-                <li className={tab == 'activeTodos' ? "selected":""}>
-                    <button  onClick={() => dispatch(selectTab("activeTodos"))}>Active</button>
+                <li className={tab == 'activeTodos' ? "selected" : ""}>
+                    <button onClick={() => dispatch(selectTab("activeTodos"))}>Active</button>
                 </li>
-                <li className={tab == 'complateTodos' ? "selected":""}>
-                    <button onClick={() => dispatch(selectTab("complateTodos"))}>Completed</button>
+                <li className={tab == 'completedTodos' ? "selected" : ""}>
+                    <button onClick={() => dispatch(selectTab("completedTodos"))}>Completed</button>
                 </li>
             </ul>
 
-            <button className="clear-completed" onClick={() => removeComplatedTodo()} >
 
-                Clear completed
-            </button>
+            {
+                completedTodos.length > 0 && <button className="clear-completed" onClick={() => removeComplatedTodo()} >
+                    Clear completed
+                </button>
+            }
+
         </footer>
     )
 }

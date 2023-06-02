@@ -6,15 +6,14 @@ import { addTodo } from '../Context/TodoReducer';
 export default function Header() {
     const dispatch = useDispatch()
     const [todo, setTodo] = useState({
-        id: "",
-        content: "",
+
+        title: "",
         complated: false
     })
     const onsubmit = (e) => {
         dispatch(addTodo(todo))
         setTodo({
-            id: "",
-            content: "",
+            title: "",
             complated: false
         })
         e.preventDefault()
@@ -24,7 +23,7 @@ export default function Header() {
             <header className="header">
                 <h1>todos</h1>
                 <form onSubmit={onsubmit}>
-                    <input className="new-todo" placeholder="What needs to be done?" value={todo.content} autoFocus onChange={(e) => setTodo({ id: uuidv4(), content: e.target.value.trim(), complated: false })} />
+                    <input className="new-todo" placeholder="What needs to be done?" value={todo.title} autoFocus onChange={(e) => setTodo({ title: e.target.value, complated: false })} />
                 </form>
             </header></div>
     )
